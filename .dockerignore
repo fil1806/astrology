@@ -1,0 +1,7 @@
+# В образ нужна только папка site/ и конфиг nginx
+*.opus
+*.jpg
+!site/**
+readme.md
+.dockerignore
+Dockerfile
