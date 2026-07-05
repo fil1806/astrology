@@ -1,3 +1,33 @@
+// Тема: сохранённый выбор > системная настройка > тёмная
+(function () {
+  const saved = localStorage.getItem('theme');
+  const theme = saved ||
+    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.documentElement.dataset.theme = theme;
+})();
+
+// Кнопка переключения темы в правом верхнем углу (в шапке)
+function initThemeToggle() {
+  const btn = document.createElement('button');
+  btn.id = 'theme-toggle';
+
+  function apply(theme) {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('theme', theme);
+    btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    btn.title = theme === 'dark' ? 'Светлая тема' : 'Тёмная тема';
+  }
+
+  apply(document.documentElement.dataset.theme);
+  btn.addEventListener('click', () => {
+    apply(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  });
+
+  document.querySelector('.header-inner').appendChild(btn);
+}
+
+document.addEventListener('DOMContentLoaded', initThemeToggle);
+
 // Подсветка активного пункта меню
 (function () {
   const page = location.pathname.split('/').pop() || 'index.html';

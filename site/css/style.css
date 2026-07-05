@@ -9,9 +9,26 @@
   --accent-soft: #f3d089;
   --line: #2a3152;
   --link: #8ab4f8;
+  --header-bg: rgba(14, 18, 32, .85);
   --radius: 14px;
   --max-w: 980px;
 }
+
+/* Светлая тема */
+:root[data-theme="light"] {
+  --bg: #f6f3ec;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1ecdf;
+  --text: #2b2d3a;
+  --text-dim: #676a7c;
+  --accent: #a8760f;
+  --accent-soft: #7d5a0c;
+  --line: #ddd5c2;
+  --link: #1558b0;
+  --header-bg: rgba(246, 243, 236, .88);
+}
+
+:root[data-theme="light"] body { background-image: none; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -29,12 +46,13 @@ body {
   color: var(--text);
   line-height: 1.7;
   min-height: 100vh;
+  transition: background-color .25s, color .25s;
 }
 
 /* ---------- Шапка и навигация ---------- */
 header {
   border-bottom: 1px solid var(--line);
-  background: rgba(14, 18, 32, .85);
+  background: var(--header-bg);
   backdrop-filter: blur(6px);
   position: sticky;
   top: 0;
@@ -72,6 +90,21 @@ nav a {
 
 nav a:hover { color: var(--text); background: var(--bg-card); }
 nav a.active { color: var(--accent); background: var(--bg-card); }
+
+/* Переключатель темы (кнопка создаётся в main.js) */
+#theme-toggle {
+  margin-left: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 5px 11px;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+#theme-toggle:hover { background: var(--bg-card-hover); }
 
 /* ---------- Контент ---------- */
 main {
