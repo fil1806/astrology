@@ -1,10 +1,5 @@
-// Тема: сохранённый выбор > системная настройка > тёмная
-(function () {
-  const saved = localStorage.getItem('theme');
-  const theme = saved ||
-    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-  document.documentElement.dataset.theme = theme;
-})();
+// Тема выставляется инлайн-скриптом в <head> каждой страницы —
+// до первой отрисовки, чтобы не мелькала тема по умолчанию.
 
 // Кнопка переключения темы в правом верхнем углу (в шапке)
 function initThemeToggle() {
