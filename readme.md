@@ -125,3 +125,20 @@ bun scripts/build.ts
 
 Новый язык: словарь `site/i18n/<код>.json` (по образцу `en.json`), строка в
 `languages.json`, переведённые страницы в `site/<код>/`, затем сборка.
+
+### Выкладка на Cloudflare
+
+Сайт живёт в воркере `patient-cake-f328` (Cloudflare Workers, только static
+assets, своего кода нет):
+
+```bash
+set -a; . ~/ewc/dev-ops/.env.fil; set +a   # CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN
+bun scripts/build.ts && bun scripts/deploy.ts
+```
+
+Сборка ставит на CSS, JS и словари метку версии `?v=<хеш>` и пишет
+`site/_headers`: ассеты кэшируются у браузера навсегда, сменился файл —
+сменился адрес. `_headers` уходит не файлом, а в настройках ассетов.
+
+Скорость упирается в маршрутизацию Cloudflare: запросы к `workers.dev` из
+Израиля обслуживают Франкфурт или Осака, а не Хайфа, — 150–250 мс на оборот.

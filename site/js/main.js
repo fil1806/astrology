@@ -4,8 +4,10 @@
 // Тексты — из i18n/<lang>.json, список языков — из i18n/languages.json.
 
 const SITE_ROOT = new URL('../', document.currentScript.src);
+// Метка версии (?v=…) от сборки: с ней словари кэшируются навсегда, как и сам скрипт
+const ASSET_VERSION = new URL(document.currentScript.src).search;
 const PAGE_LANG = document.documentElement.lang || 'ru';
-const loadJson = (path) => fetch(new URL(path, SITE_ROOT)).then((r) => r.json());
+const loadJson = (path) => fetch(new URL(path + ASSET_VERSION, SITE_ROOT)).then((r) => r.json());
 const I18N = Promise.all([loadJson(`i18n/${PAGE_LANG}.json`), loadJson('i18n/languages.json')])
   .catch(() => [{ common: {} }, []]);
 

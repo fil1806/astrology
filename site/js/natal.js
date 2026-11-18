@@ -6,7 +6,8 @@
   // Словарь языка страницы: i18n/<lang>.json рядом с корнем сайта
   const LANG = document.documentElement.lang || 'ru';
   const ROOT = new URL('../', document.currentScript.src);
-  const DICT = await fetch(new URL(`i18n/${LANG}.json`, ROOT)).then((r) => r.json());
+  const VERSION = new URL(document.currentScript.src).search; // ?v=… от сборки
+  const DICT = await fetch(new URL(`i18n/${LANG}.json${VERSION}`, ROOT)).then((r) => r.json());
   N.localize(DICT.astro);
   const I = DICT.natal;
   // Подстановка {имя} в строку словаря
@@ -394,7 +395,7 @@
   // символы планет выходят без встраивания шрифтов, которых нет в jsPDF.
 
   // jsPDF лежит рядом с этим файлом; страницы есть и в корне, и в en/, hi/
-  const JSPDF_SRC = new URL('js/jspdf.umd.min.js', ROOT).href;
+  const JSPDF_SRC = new URL('js/jspdf.umd.min.js' + VERSION, ROOT).href;
   let jsPdfLoading = null;
   function loadJsPdf() {
     if (window.jspdf) return Promise.resolve();

@@ -77,7 +77,40 @@ for (const l of LANGS) {
   }
 }
 
-// ---------- 3. sitemap.xml и robots.txt ----------
+// ---------- 3. Версия ассетов и кэш ----------
+// Одна метка на весь сайт — хеш содержимого css/, js/ и i18n/. Ссылки на них в
+// HTML получают ?v=метка, скрипты передают её дальше словарям и jsPDF. Поэтому
+// ассеты можно кэшировать навсегда: изменился файл — изменился адрес.
+
+const hasher = new Bun.CryptoHasher("sha256");
+for (const d of ["css", "js", "i18n"]) {
+  for (const f of readdirSync(join(SITE, d)).sort()) hasher.update(readFileSync(join(SITE, d, f)));
+}
+const VERSION = hasher.digest("hex").slice(0, 10);
+for (const l of LANGS) {
+  for (const page of PAGES) {
+    const file = join(SITE, l.dir, page);
+    if (!existsSync(file)) continue;
+    const html = readFileSync(file, "utf8")
+      .replace(/((?:href|src)="(?:\.\.\/)*(?:css|js)\/[^"?]+)(\?v=[0-9a-f]+)?"/g, `$1?v=${VERSION}"`);
+    writeFileSync(file, html);
+  }
+}
+writeFileSync(join(SITE, "_headers"), [
+  "# Сгенерировано scripts/build.ts. Ассеты адресуются с ?v=<хеш>, поэтому вечные.",
+  "/css/*", "  Cache-Control: public, max-age=31536000, immutable",
+  "/js/*", "  Cache-Control: public, max-age=31536000, immutable",
+  "/i18n/*", "  Cache-Control: public, max-age=31536000, immutable",
+  "/img/*", "  Cache-Control: public, max-age=2592000",
+  "/audio/*", "  Cache-Control: public, max-age=2592000",
+  // Страницам правила нет намеренно: правила _headers, совпавшие с одним
+  // адресом, склеиваются, и "/*" испортил бы вечный кэш ассетов. Страницы
+  // остаются на умолчании Cloudflare — перепроверка при каждом заходе, зато
+  // новая метка версии доходит до браузера сразу.
+  "",
+].join("\n"));
+
+// ---------- 4. sitemap.xml и robots.txt ----------
 
 const today = new Date().toISOString().slice(0, 10);
 const urls: string[] = [];
@@ -98,4 +131,4 @@ writeFileSync(join(SITE, "sitemap.xml"),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join("\n")}\n</urlset>\n`);
 writeFileSync(join(SITE, "robots.txt"), `User-agent: *\nAllow: /\n\nSitemap: ${BASE_URL}/sitemap.xml\n`);
 
-console.log(`languages: ${LANGS.map((l) => l.code).join(", ")}; pages: ${PAGES.length}; sitemap urls: ${urls.length}`);
+console.log(`version: ${VERSION}; languages: ${LANGS.map((l) => l.code).join(", ")}; pages: ${PAGES.length}; sitemap urls: ${urls.length}`);
