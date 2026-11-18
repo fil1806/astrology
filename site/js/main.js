@@ -35,7 +35,8 @@ function initLanguageSwitch(languages, common) {
   if (languages.length < 2) return;
   const here = languages.find((l) => l.code === PAGE_LANG) || languages[0];
   const pageUrl = new URL(location.href);
-  const rel = decodeURIComponent(pageUrl.pathname).slice(new URL(here.dir, SITE_ROOT).pathname.length) || 'index.html';
+  // Главная — адрес папки (/en/), а не /en/index.html: тот уходит в перенаправление
+  const rel = decodeURIComponent(pageUrl.pathname).slice(new URL(here.dir, SITE_ROOT).pathname.length).replace(/(^|\/)index(\.html)?$/, '$1');
 
   const box = document.createElement('div');
   box.className = 'lang-switch';
