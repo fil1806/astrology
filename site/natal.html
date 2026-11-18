@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Натальная карта — Астрология</title>
+<meta name="description" content="Постройте свою натальную карту онлайн: положения планет в знаках и домах, асцендент, аспекты — по дате, времени и месту рождения.">
+<script>document.documentElement.dataset.theme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');</script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a class="logo" href="index.html">✦ Астрология</a>
+    <nav>
+      <a href="index.html">Главная</a>
+      <a href="natal.html">Натальная карта</a>
+      <a href="planets.html">Планеты</a>
+      <a href="zodiac.html">Знаки</a>
+      <a href="houses.html">Дома</a>
+      <a href="aspects.html">Аспекты</a>
+      <a href="practice.html">Практика</a>
+      <a href="audio.html">Аудио</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <h1>Натальная карта</h1>
+  <p class="lead">Введите дату, время и место рождения — карта построится прямо здесь. Данные никуда не отправляются: расчёт идёт в вашем браузере.</p>
+
+  <form id="natal-form" class="natal-form" autocomplete="off">
+    <label class="f-name">Имя <span class="opt">(необязательно)</span>
+      <input type="text" name="name" maxlength="60" placeholder="Например, Анна">
+    </label>
+    <label class="f-date">Дата рождения
+      <input type="date" name="date" required min="1800-01-01" max="2100-12-31">
+    </label>
+    <label class="f-time">Время рождения
+      <input type="time" name="time" value="12:00">
+    </label>
+    <label class="f-unknown"><input type="checkbox" name="unknown"> Время неизвестно</label>
+
+    <label class="f-place">Место рождения
+      <input type="text" name="place" placeholder="Начните вводить город" required>
+      <ul id="place-results" class="place-results" hidden></ul>
+    </label>
+    <p class="place-chosen" id="place-chosen"></p>
+
+    <details class="f-manual">
+      <summary>Указать координаты вручную</summary>
+      <div class="manual-grid">
+        <label>Широта <input type="number" name="lat" step="0.0001" min="-90" max="90" placeholder="55.7558"></label>
+        <label>Долгота <input type="number" name="lon" step="0.0001" min="-180" max="180" placeholder="37.6173"></label>
+        <label>Часовой пояс <input type="text" name="tz" placeholder="Europe/Moscow"></label>
+      </div>
+      <p class="hint">Часовой пояс — в формате IANA (Europe/Moscow, Asia/Jerusalem). По нему учитываются летнее время и исторические переводы часов на дату рождения.</p>
+    </details>
+
+    <button type="submit" class="btn">Построить карту</button>
+    <p class="form-error" id="form-error" role="alert"></p>
+  </form>
+
+  <section id="natal-result" hidden>
+    <h2 id="result-title">Карта</h2>
+    <p class="result-meta" id="result-meta"></p>
+    <div class="chart-wrap" id="chart"></div>
+    <p class="share-row">
+      <button type="button" class="btn" id="pdf-btn">Скачать PDF</button>
+      <button type="button" class="btn btn-ghost" id="share-btn">Скопировать ссылку на карту</button>
+      <span id="share-note" class="hint"></span>
+    </p>
+
+    <h2>Планеты</h2>
+    <div class="table-wrap"><table id="planets-table"></table></div>
+
+    <div id="houses-block">
+      <h2>Дома и угловые точки</h2>
+      <div class="table-wrap"><table id="houses-table"></table></div>
+    </div>
+
+    <h2>Аспекты</h2>
+    <div class="table-wrap"><table id="aspects-table"></table></div>
+
+    <h2>Кратко о карте</h2>
+    <div id="reading" class="reading"></div>
+    <blockquote>Это отправная точка, а не готовое толкование: связывайте планету, знак и дом сами, по шагам из <a href="index.html">плана обучения</a>. Подробнее — <a href="planets.html">планеты</a>, <a href="zodiac.html">знаки</a>, <a href="houses.html">дома</a>, <a href="aspects.html">аспекты</a>.</blockquote>
+  </section>
+</main>
+
+<footer>
+  Учебный сайт по астрологии · Материалы пополняются
+</footer>
+
+<script src="js/main.js"></script>
+<script src="js/astronomy.browser.min.js"></script>
+<script src="js/natal-core.js"></script>
+<script src="js/natal.js"></script>
+</body>
+</html>
