@@ -419,3 +419,9 @@ nav a { padding: 6px 9px; white-space: nowrap; }
   .header-inner { flex-wrap: wrap; }
   nav { order: 3; flex-basis: 100%; }
 }
+
+/* Китайский: системные шрифты с иероглифами */
+:root[lang="zh"] body {
+  font-family: Georgia, "Songti SC", "Noto Serif CJK SC", "SimSun", serif;
+}
+:root[lang="zh"] nav a, :root[lang="zh"] .natal-form, :root[lang="zh"] table { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }

@@ -422,8 +422,8 @@
 
   const PW = 1240, PH = 1754, M = 90; // A4 при 150 dpi
   // Деванагари в Arial и Georgia нет — дальше по списку системные шрифты с ним
-  const SANS = '-apple-system, "Segoe UI", Roboto, Arial, "Kohinoor Devanagari", "Nirmala UI", "Noto Sans Devanagari", sans-serif';
-  const SERIF = 'Georgia, "Kohinoor Devanagari", "Nirmala UI", "Noto Serif Devanagari", serif';
+  const SANS = '-apple-system, "Segoe UI", Roboto, Arial, "Kohinoor Devanagari", "Nirmala UI", "Noto Sans Devanagari", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif';
+  const SERIF = 'Georgia, "Kohinoor Devanagari", "Nirmala UI", "Noto Serif Devanagari", "Songti SC", "SimSun", "Noto Serif CJK SC", serif';
 
   function newPage() {
     const cv = document.createElement('canvas');
@@ -441,7 +441,9 @@
     const tokens = [];
     html.replace(/<strong>(.*?)<\/strong>|([^<]+)/g, (_, b, t) => {
       const text = (b ?? t).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-      for (const w of text.split(/(\s+)/)) if (w) tokens.push({ w, bold: b != null });
+      // Китайский и японский пишутся без пробелов: каждый иероглиф — отдельное
+      // место переноса, иначе строка уходит за край страницы
+      for (const w of text.match(/\s+|[\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF\u3000-\u303F]|[^\s\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF\u3000-\u303F]+/g) || []) tokens.push({ w, bold: b != null });
     });
     const lh = size * 1.45;
     pg.y += size; // pg.y — верх строки, а fillText пишет по базовой линии

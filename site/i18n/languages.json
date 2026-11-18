@@ -1,5 +1,6 @@
 [
-  { "code": "ru", "label": "RU", "name": "Русский", "dir": "" },
-  { "code": "en", "label": "EN", "name": "English", "dir": "en/" },
-  { "code": "hi", "label": "हिन्दी", "name": "हिन्दी", "dir": "hi/" }
+  {"code": "ru", "label": "RU", "name": "Русский", "dir": ""},
+  {"code": "en", "label": "EN", "name": "English", "dir": "en/"},
+  {"code": "hi", "label": "हिन्दी", "name": "हिन्दी", "dir": "hi/"},
+  {"code": "zh", "label": "中文", "name": "中文", "dir": "zh/"}
 ]
