@@ -9,6 +9,18 @@ const loadJson = (path) => fetch(new URL(path, SITE_ROOT)).then((r) => r.json())
 const I18N = Promise.all([loadJson(`i18n/${PAGE_LANG}.json`), loadJson('i18n/languages.json')])
   .catch(() => [{ common: {} }, []]);
 
+// Язык и тема — одной группой справа в шапке: при нехватке места
+// переносится меню, а группа не разрывается
+function headerTools() {
+  let box = document.querySelector('.header-tools');
+  if (!box) {
+    box = document.createElement('div');
+    box.className = 'header-tools';
+    document.querySelector('.header-inner').appendChild(box);
+  }
+  return box;
+}
+
 // Кнопка переключения темы в правом верхнем углу (в шапке)
 function initThemeToggle(common) {
   const btn = document.createElement('button');
@@ -26,7 +38,7 @@ function initThemeToggle(common) {
     apply(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
   });
 
-  document.querySelector('.header-inner').appendChild(btn);
+  headerTools().appendChild(btn);
 }
 
 // Переключатель языка: ссылка на ту же страницу в папке другого языка.
@@ -54,7 +66,7 @@ function initLanguageSwitch(languages, common) {
     a.addEventListener('click', () => { a.href = new URL(l.dir + rel, SITE_ROOT).pathname + location.search + location.hash; });
     box.appendChild(a);
   }
-  document.querySelector('.header-inner').appendChild(box);
+  headerTools().appendChild(box);
 }
 
 // Подсветка активного пункта меню

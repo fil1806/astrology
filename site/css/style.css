@@ -93,7 +93,6 @@ nav a.active { color: var(--accent); background: var(--bg-card); }
 
 /* Переключатель темы (кнопка создаётся в main.js) */
 #theme-toggle {
-  margin-left: auto;
   background: var(--bg-card);
   border: 1px solid var(--line);
   color: var(--text);
@@ -387,7 +386,6 @@ caption { caption-side: bottom; text-align: left; padding-top: 8px; font-size: .
 
 /* ---------- Переключатель языка (создаётся в main.js) ---------- */
 .lang-switch {
-  margin-left: auto;
   display: flex;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -404,10 +402,20 @@ caption { caption-side: bottom; text-align: left; padding-top: 8px; font-size: .
 .lang-switch a + a { border-left: 1px solid var(--line); }
 .lang-switch a:hover { color: var(--text); background: var(--bg-card-hover); }
 .lang-switch a[aria-current] { color: var(--accent); font-weight: 600; }
-.lang-switch + #theme-toggle { margin-left: 0; }
 
 /* Деванагари: в Georgia его нет, берутся системные шрифты */
 :root[lang="hi"] body {
   font-family: Georgia, "Kohinoor Devanagari", "Nirmala UI", "Noto Serif Devanagari", "Mangal", serif;
   line-height: 1.8;
+}
+
+/* ---------- Шапка в одну строку ---------- */
+.header-inner { max-width: 1180px; flex-wrap: nowrap; gap: 14px; }
+nav { flex: 1 1 auto; min-width: 0; gap: 2px; }
+nav a { padding: 6px 9px; white-space: nowrap; }
+.header-tools { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+/* Не помещается — меню уходит отдельной строкой под логотип и кнопки */
+@media (max-width: 1060px) {
+  .header-inner { flex-wrap: wrap; }
+  nav { order: 3; flex-basis: 100%; }
 }
