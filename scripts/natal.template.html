@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="{{lang}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{pageTitle}}</title>
+<meta name="description" content="{{pageDescription}}">
+<script>document.documentElement.dataset.theme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');</script>
+<link rel="stylesheet" href="{{base}}css/style.css">
+</head>
+<body>
+<!-- Сгенерировано scripts/build.ts из scripts/natal.template.html и i18n/{{lang}}.json — правки вносить туда. -->
+{{header}}
+
+<main>
+  <h1>{{h1}}</h1>
+  <p class="lead">{{lead}}</p>
+
+  <form id="natal-form" class="natal-form" autocomplete="off">
+    <label class="f-name">{{name}} <span class="opt">{{optional}}</span>
+      <input type="text" name="name" maxlength="60" placeholder="{{namePlaceholder}}">
+    </label>
+    <label class="f-date">{{date}}
+      <input type="date" name="date" required min="1800-01-01" max="2100-12-31">
+    </label>
+    <label class="f-time">{{time}}
+      <input type="time" name="time" value="12:00">
+    </label>
+    <label class="f-unknown"><input type="checkbox" name="unknown"> {{timeUnknownBox}}</label>
+
+    <label class="f-place">{{place}}
+      <input type="text" name="place" placeholder="{{placePlaceholder}}" required>
+      <ul id="place-results" class="place-results" hidden></ul>
+    </label>
+    <p class="place-chosen" id="place-chosen"></p>
+
+    <details class="f-manual">
+      <summary>{{manual}}</summary>
+      <div class="manual-grid">
+        <label>{{lat}} <input type="number" name="lat" step="0.0001" min="-90" max="90" placeholder="55.7558"></label>
+        <label>{{lon}} <input type="number" name="lon" step="0.0001" min="-180" max="180" placeholder="37.6173"></label>
+        <label>{{tz}} <input type="text" name="tz" placeholder="Europe/Moscow"></label>
+      </div>
+      <p class="hint">{{tzHint}}</p>
+    </details>
+
+    <button type="submit" class="btn">{{build}}</button>
+    <p class="form-error" id="form-error" role="alert"></p>
+  </form>
+
+  <section id="natal-result" hidden>
+    <h2 id="result-title">{{title}}</h2>
+    <p class="result-meta" id="result-meta"></p>
+    <div class="chart-wrap" id="chart"></div>
+    <p class="share-row">
+      <button type="button" class="btn" id="pdf-btn">{{pdf}}</button>
+      <button type="button" class="btn btn-ghost" id="share-btn">{{share}}</button>
+      <span id="share-note" class="hint"></span>
+    </p>
+
+    <h2>{{hPlanets}}</h2>
+    <div class="table-wrap"><table id="planets-table"></table></div>
+
+    <div id="houses-block">
+      <h2>{{hHouses}}</h2>
+      <div class="table-wrap"><table id="houses-table"></table></div>
+    </div>
+
+    <h2>{{hAspects}}</h2>
+    <div class="table-wrap"><table id="aspects-table"></table></div>
+
+    <h2>{{hSummary}}</h2>
+    <div id="reading" class="reading"></div>
+    <blockquote>{{{footnote}}}</blockquote>
+  </section>
+</main>
+
+{{footer}}
+
+<script src="{{base}}js/main.js"></script>
+<script src="{{base}}js/astronomy.browser.min.js"></script>
+<script src="{{base}}js/natal-core.js"></script>
+<script src="{{base}}js/natal.js"></script>
+</body>
+</html>

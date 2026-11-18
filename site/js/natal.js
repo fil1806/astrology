@@ -1,8 +1,16 @@
 // Страница «Натальная карта»: форма, поиск города, круг карты, таблицы,
 // краткая расшифровка, ссылка на карту и PDF. Расчёт — в natal-core.js.
-(function () {
+(async function () {
   'use strict';
   const N = window.NatalCore;
+  // Словарь языка страницы: i18n/<lang>.json рядом с корнем сайта
+  const LANG = document.documentElement.lang || 'ru';
+  const ROOT = new URL('../', document.currentScript.src);
+  const DICT = await fetch(new URL(`i18n/${LANG}.json`, ROOT)).then((r) => r.json());
+  N.localize(DICT.astro);
+  const I = DICT.natal;
+  // Подстановка {имя} в строку словаря
+  const t = (key, vars = {}) => String(I[key] ?? key).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
   const $ = (id) => document.getElementById(id);
   const form = $('natal-form');
   const results = $('place-results');
@@ -11,18 +19,12 @@
   let place = null;      // { name, lat, lon, tz } — выбранный город
   let current = null;    // последняя построенная карта, для PDF и ссылки
 
-  const ELEMENT = {
-    fire: { name: 'Огонь', color: '#d9573f' },
-    earth: { name: 'Земля', color: '#5b9a4a' },
-    air: { name: 'Воздух', color: '#c9a227' },
-    water: { name: 'Вода', color: '#3d7fcf' },
-  };
+  const COLORS = { fire: '#d9573f', earth: '#5b9a4a', air: '#c9a227', water: '#3d7fcf' };
+  const ELEMENT = Object.fromEntries(Object.entries(COLORS).map(([k, color]) => [k, { name: DICT.astro.elements[k], color }]));
   const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 
   const fmtPos = (p) => `${p.deg}°${String(p.min).padStart(2, '0')}′`;
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  // Предложный падеж знака для фраз «Солнце в Рыбах»
-  const SIGN_IN = ['Овне', 'Тельце', 'Близнецах', 'Раке', 'Льве', 'Деве', 'Весах', 'Скорпионе', 'Стрельце', 'Козероге', 'Водолее', 'Рыбах'];
 
   // ---------- Поиск города (Open-Meteo, без ключа) ----------
 
@@ -40,14 +42,14 @@
   async function searchPlace(q) {
     const seq = ++searchSeq;
     try {
-      const url = 'https://geocoding-api.open-meteo.com/v1/search?count=7&language=ru&format=json&name=' + encodeURIComponent(q);
+      const url = 'https://geocoding-api.open-meteo.com/v1/search?count=7&language=' + LANG + '&format=json&name=' + encodeURIComponent(q);
       const r = await fetch(url);
       const data = await r.json();
       if (seq !== searchSeq) return; // пришёл ответ на устаревший запрос
       const list = (data.results || []).filter((x) => x.timezone);
       results.innerHTML = '';
       if (!list.length) {
-        results.innerHTML = '<li class="empty">Ничего не найдено — попробуйте иначе или укажите координаты вручную</li>';
+        results.innerHTML = `<li class="empty">${t('noResults')}</li>`;
       }
       for (const x of list) {
         const li = document.createElement('li');
@@ -58,7 +60,7 @@
       }
       results.hidden = false;
     } catch {
-      results.innerHTML = '<li class="empty">Поиск недоступен — укажите координаты вручную</li>';
+      results.innerHTML = `<li class="empty">${t('searchDown')}</li>`;
       results.hidden = false;
     }
   }
@@ -77,7 +79,7 @@
   form.place.addEventListener('blur', () => setTimeout(() => { results.hidden = true; }, 150));
 
   const coordText = (lat, lon) =>
-    `${Math.abs(lat).toFixed(2)}° ${lat >= 0 ? 'с. ш.' : 'ю. ш.'}, ${Math.abs(lon).toFixed(2)}° ${lon >= 0 ? 'в. д.' : 'з. д.'}`;
+    `${Math.abs(lat).toFixed(2)}° ${t(lat >= 0 ? 'north' : 'south')}, ${Math.abs(lon).toFixed(2)}° ${t(lon >= 0 ? 'east' : 'west')}`;
 
   form.unknown.addEventListener('change', () => { form.time.disabled = form.unknown.checked; });
 
@@ -108,16 +110,16 @@
   function build(p) {
     const err = $('form-error');
     err.textContent = '';
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date)) return (err.textContent = 'Укажите дату рождения.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date)) return (err.textContent = t('errDate'));
     if (!isFinite(p.lat) || !isFinite(p.lon) || !p.tz) {
-      return (err.textContent = 'Выберите город из списка подсказок или укажите координаты и часовой пояс вручную.');
+      return (err.textContent = t('errPlace'));
     }
-    if (Math.abs(p.lat) > 90 || Math.abs(p.lon) > 180) return (err.textContent = 'Координаты вне допустимого диапазона.');
-    if (!validTz(p.tz)) return (err.textContent = 'Неизвестный часовой пояс. Пример: Europe/Moscow.');
+    if (Math.abs(p.lat) > 90 || Math.abs(p.lon) > 180) return (err.textContent = t('errRange'));
+    if (!validTz(p.tz)) return (err.textContent = t('errTz'));
 
     const [y, mo, d] = p.date.split('-').map(Number);
     const [h, mi] = (p.unknown ? '12:00' : p.time).split(':').map(Number);
-    if (y < 1800 || y > 2100) return (err.textContent = 'Поддерживаются даты с 1800 по 2100 год.');
+    if (y < 1800 || y > 2100) return (err.textContent = t('errYears'));
 
     const utc = N.localToUtc(y, mo, d, h, mi, p.tz);
     const chart = N.compute({ utc, lat: p.lat, lon: p.lon, timeKnown: !p.unknown });
@@ -135,16 +137,18 @@
     const sign = offMin >= 0 ? '+' : '−';
     const a = Math.abs(offMin);
     const off = `UTC${sign}${Math.floor(a / 60)}${a % 60 ? ':' + String(a % 60).padStart(2, '0') : ''}`;
-    const time = p.unknown ? 'время неизвестно' : `${p.time} (${off})`;
-    return `${date}, ${time} · ${p.place || 'место не указано'} · ${coordText(p.lat, p.lon)}`;
+    const time = p.unknown ? t('timeUnknown') : `${p.time} (${off})`;
+    return `${date}, ${time} · ${p.place || t('placeUnknown')} · ${coordText(p.lat, p.lon)}`;
   }
+
+  const chartTitle = (name) => (name ? t('titleWithName', { name }) : t('title'));
 
   function render(cur) {
     const { p, chart } = cur;
     $('natal-result').hidden = false;
-    $('result-title').textContent = p.name ? `Натальная карта: ${p.name}` : 'Натальная карта';
+    $('result-title').textContent = chartTitle(p.name);
     $('result-meta').textContent = metaText(cur) + (chart.houses && chart.houses.system === 'Porphyry'
-      ? ' · дома по Порфирию (Плацид за полярным кругом не определён)' : '');
+      ? t('porphyry') : '');
 
     const chartEl = $('chart');
     chartEl.innerHTML = '';
@@ -163,11 +167,11 @@
     const rows = chart.objects.map((o) => `<tr>
       <td><span class="sym">${o.glyph}</span>${o.name}</td>
       <td><span class="sym el-${o.pos.sign.element}">${o.pos.sign.glyph}</span>${o.pos.sign.name}</td>
-      <td class="num">${fmtPos(o.pos)}${o.retro ? ' <span class="retro" title="Ретроградное движение">R</span>' : ''}</td>
+      <td class="num">${fmtPos(o.pos)}${o.retro ? ` <span class="retro" title="${t('retro')}">R</span>` : ''}</td>
       ${unknown ? '' : `<td class="num">${ROMAN[o.house]}</td>`}
     </tr>`).join('');
-    $('planets-table').innerHTML = `<thead><tr><th>Планета</th><th>Знак</th><th>Градус</th>${unknown ? '' : '<th>Дом</th>'}</tr></thead><tbody>${rows}</tbody>`
-      + (unknown ? '<caption>Время рождения неизвестно: Луна может отличаться до ±7°, дома и асцендент не рассчитываются.</caption>' : '');
+    $('planets-table').innerHTML = `<thead><tr><th>${t('thPlanet')}</th><th>${t('thSign')}</th><th>${t('thDegree')}</th>${unknown ? '' : `<th>${t('thHouse')}</th>`}</tr></thead><tbody>${rows}</tbody>`
+      + (unknown ? `<caption>${t('unknownCaption')}</caption>` : '');
   }
 
   function renderHouses(chart) {
@@ -175,22 +179,22 @@
     const rows = [];
     for (let i = 1; i <= 12; i++) {
       const pos = N.signOf(c[i]);
-      const label = i === 1 ? ' (Асцендент)' : i === 10 ? ' (MC)' : i === 4 ? ' (IC)' : i === 7 ? ' (Десцендент)' : '';
+      const label = [1, 4, 7, 10].includes(i) ? t('angle' + i) : '';
       rows.push(`<tr><td class="num">${ROMAN[i]}${label}</td>
         <td><span class="sym el-${pos.sign.element}">${pos.sign.glyph}</span>${pos.sign.name} ${fmtPos(pos)}</td>
         <td class="dim">${N.HOUSES[i - 1]}</td></tr>`);
     }
-    $('houses-table').innerHTML = `<thead><tr><th>Дом</th><th>Куспид</th><th>Сфера жизни</th></tr></thead><tbody>${rows.join('')}</tbody>`;
+    $('houses-table').innerHTML = `<thead><tr><th>${t('thHouse')}</th><th>${t('thCusp')}</th><th>${t('thSphere')}</th></tr></thead><tbody>${rows.join('')}</tbody>`;
   }
 
   function renderAspects(chart) {
-    if (!chart.aspects.length) { $('aspects-table').innerHTML = '<tbody><tr><td>Мажорных аспектов нет</td></tr></tbody>'; return; }
+    if (!chart.aspects.length) { $('aspects-table').innerHTML = `<tbody><tr><td>${t('noAspects')}</td></tr></tbody>`; return; }
     const rows = chart.aspects.map((x) => `<tr>
       <td><span class="sym">${x.a.glyph}</span>${x.a.name}</td>
       <td class="asp-${x.aspect.kind}"><span class="sym">${x.aspect.glyph}</span>${x.aspect.name}</td>
       <td><span class="sym">${x.b.glyph}</span>${x.b.name}</td>
       <td class="num">${x.orb.toFixed(1)}°</td></tr>`).join('');
-    $('aspects-table').innerHTML = `<thead><tr><th>Планета</th><th>Аспект</th><th>Планета</th><th>Орбис</th></tr></thead><tbody>${rows}</tbody>`;
+    $('aspects-table').innerHTML = `<thead><tr><th>${t('thPlanet')}</th><th>${t('thAspect')}</th><th>${t('thPlanet')}</th><th>${t('thOrb')}</th></tr></thead><tbody>${rows}</tbody>`;
   }
 
   // Короткая расшифровка из ключевых слов: планета (что) + знак (как) + дом (где)
@@ -198,22 +202,25 @@
     const out = [];
     if (chart.angles) {
       const s = chart.angles.asc.pos.sign;
-      out.push(`<strong>Асцендент в ${SIGN_IN[chart.angles.asc.pos.index]}</strong> — так вас видят при первом знакомстве: ${s.key}.`);
+      out.push(t('readAsc', { signIn: s.in, key: s.key }));
     }
     const main = chart.objects.filter((o) => N.PLANETS.some((x) => x.id === o.id));
     for (const o of main) {
-      const house = !unknown && o.house ? `, ${ROMAN[o.house]} дом` : '';
-      const sphere = !unknown && o.house ? ` Сфера: ${N.HOUSES[o.house - 1]}.` : '';
-      out.push(`<strong>${o.name} в ${SIGN_IN[o.pos.index]}${house}${o.retro ? ', ретроградный' : ''}</strong> — ${o.key}: ${o.pos.sign.key}.${sphere}`);
+      const house = !unknown && o.house ? t('readHouse', { house: ROMAN[o.house] }) : '';
+      const sphere = !unknown && o.house ? t('readSphere', { sphere: N.HOUSES[o.house - 1] }) : '';
+      out.push(t('readPlanet', {
+        name: o.name, signIn: o.pos.sign.in, house, retro: o.retro ? t('readRetro') : '',
+        key: o.key, signKey: o.pos.sign.key, sphere,
+      }));
     }
     // Баланс стихий: светила считаются за два
     const count = { fire: 0, earth: 0, air: 0, water: 0 };
     for (const o of main) count[o.pos.sign.element] += o.id === 'Sun' || o.id === 'Moon' ? 2 : 1;
     const parts = Object.entries(count).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${ELEMENT[k].name} ${v}`);
-    out.push(`<strong>Стихии</strong> (светила считаются за два): ${parts.join(', ')}. Преобладающая стихия задаёт общий темперамент карты, недостающая — то, чему приходится учиться.`);
+    out.push(t('readElements', { list: parts.join(', ') }));
     const tight = chart.aspects.filter((x) => x.orb <= 2).slice(0, 5);
     if (tight.length) {
-      out.push(`<strong>Самые точные аспекты</strong>: ${tight.map((x) => `${x.a.name} ${x.aspect.glyph} ${x.b.name} (${x.orb.toFixed(1)}°)`).join('; ')}. Чем точнее аспект, тем ярче он звучит в характере.`);
+      out.push(t('readTight', { list: tight.map((x) => `${x.a.name} ${x.aspect.glyph} ${x.b.name} (${x.orb.toFixed(1)}°)`).join('; ') }));
     }
     return out;
   }
@@ -240,7 +247,7 @@
     const base = chart.angles ? chart.angles.asc.lon : 0; // асцендент слева
     const th = (lon) => (180 + N.diff(lon, base)) * Math.PI / 180;
     const pt = (lon, r) => [c + r * Math.cos(th(lon)), c - r * Math.sin(th(lon))];
-    const svg = el('svg', { viewBox: `0 0 ${S} ${S}`, class: 'natal-wheel', role: 'img', 'aria-label': 'Круг натальной карты', 'font-family': 'Georgia, serif' });
+    const svg = el('svg', { viewBox: `0 0 ${S} ${S}`, class: 'natal-wheel', role: 'img', 'aria-label': t('wheel'), 'font-family': 'Georgia, serif' });
 
     el('circle', { cx: c, cy: c, r: R0, fill: pal.bg, stroke: pal.line, 'stroke-width': 1.5 }, svg);
 
@@ -376,9 +383,9 @@
   $('share-btn').addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(location.href);
-      $('share-note').textContent = 'Ссылка скопирована. Данные рождения хранятся в самой ссылке.';
+      $('share-note').textContent = t('copied');
     } catch {
-      $('share-note').textContent = 'Скопируйте адрес из строки браузера.';
+      $('share-note').textContent = t('copyManual');
     }
   });
 
@@ -386,14 +393,16 @@
   // Страницы рисуются на canvas и кладутся в PDF картинками: так кириллица и
   // символы планет выходят без встраивания шрифтов, которых нет в jsPDF.
 
+  // jsPDF лежит рядом с этим файлом; страницы есть и в корне, и в en/, hi/
+  const JSPDF_SRC = new URL('js/jspdf.umd.min.js', ROOT).href;
   let jsPdfLoading = null;
   function loadJsPdf() {
     if (window.jspdf) return Promise.resolve();
     jsPdfLoading = jsPdfLoading || new Promise((ok, fail) => {
       const s = document.createElement('script');
-      s.src = 'js/jspdf.umd.min.js';
+      s.src = JSPDF_SRC;
       s.onload = ok;
-      s.onerror = () => { jsPdfLoading = null; fail(new Error('jsPDF не загрузился')); };
+      s.onerror = () => { jsPdfLoading = null; fail(new Error('jsPDF failed to load')); };
       document.head.appendChild(s);
     });
     return jsPdfLoading;
@@ -411,7 +420,9 @@
   }
 
   const PW = 1240, PH = 1754, M = 90; // A4 при 150 dpi
-  const SANS = '-apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+  // Деванагари в Arial и Georgia нет — дальше по списку системные шрифты с ним
+  const SANS = '-apple-system, "Segoe UI", Roboto, Arial, "Kohinoor Devanagari", "Nirmala UI", "Noto Sans Devanagari", sans-serif';
+  const SERIF = 'Georgia, "Kohinoor Devanagari", "Nirmala UI", "Noto Serif Devanagari", serif';
 
   function newPage() {
     const cv = document.createElement('canvas');
@@ -476,7 +487,7 @@
   function heading(pages, text) {
     let pg = pages[pages.length - 1];
     if (pg.y + 120 > PH - M) { pg = newPage(); pages.push(pg); }
-    pg.g.font = `28px Georgia, serif`;
+    pg.g.font = `28px ${SERIF}`;
     pg.g.fillStyle = '#7d5a0c';
     pg.g.fillText(text, M, pg.y + 28);
     pg.y += 50;
@@ -491,9 +502,9 @@
     const g = pg.g;
     const W = PW - 2 * M;
 
-    g.font = '44px Georgia, serif';
+    g.font = `44px ${SERIF}`;
     g.fillStyle = '#7d5a0c';
-    g.fillText(p.name ? `Натальная карта: ${p.name}` : 'Натальная карта', M, pg.y + 40);
+    g.fillText(chartTitle(p.name), M, pg.y + 40);
     pg.y += 70;
     drawRich(pg, metaText(current), 20, W);
     pg.y += 10;
@@ -504,12 +515,14 @@
     pg.y += size + 30;
     g.font = `15px ${SANS}`;
     g.fillStyle = '#6b6e7e';
-    g.fillText('Красные линии — напряжённые аспекты, синие — гармоничные. ' + (chart.houses ? `Дома: ${chart.houses.system === 'Placidus' ? 'Плацидус' : 'Порфирий'}.` : 'Время рождения неизвестно — дома не рассчитаны.'), M, pg.y);
+    g.fillText(t('legend') + ' ' + (chart.houses
+      ? t('legendHouses', { system: DICT.astro.houseSystems[chart.houses.system] || chart.houses.system })
+      : t('legendNoHouses')), M, pg.y);
 
     pages.push(newPage());
-    pg = heading(pages, 'Планеты');
+    pg = heading(pages, t('hPlanets'));
     const unknown = !chart.houses;
-    drawTable(pages, unknown ? ['Планета', 'Знак', 'Градус'] : ['Планета', 'Знак', 'Градус', 'Дом'],
+    drawTable(pages, unknown ? [t('thPlanet'), t('thSign'), t('thDegree')] : [t('thPlanet'), t('thSign'), t('thDegree'), t('thHouse')],
       chart.objects.map((o) => {
         const r = [`${o.glyph}  ${o.name}`, `${o.pos.sign.glyph}  ${o.pos.sign.name}`, fmtPos(o.pos) + (o.retro ? '  R' : '')];
         if (!unknown) r.push(ROMAN[o.house]);
@@ -517,24 +530,24 @@
       }), unknown ? [420, 360, 280] : [400, 330, 200, 130]);
 
     if (chart.houses) {
-      heading(pages, 'Дома');
+      heading(pages, t('pdfHouses'));
       const cu = chart.houses.cusps;
       const rows = [];
       for (let i = 1; i <= 12; i++) {
         const pos = N.signOf(cu[i]);
         rows.push([ROMAN[i] + (i === 1 ? ' (AC)' : i === 10 ? ' (MC)' : ''), `${pos.sign.glyph}  ${pos.sign.name} ${fmtPos(pos)}`, N.HOUSES[i - 1]]);
       }
-      drawTable(pages, ['Дом', 'Куспид', 'Сфера жизни'], rows, [170, 380, 510]);
+      drawTable(pages, [t('thHouse'), t('thCusp'), t('thSphere')], rows, [170, 380, 510]);
     }
 
     if (chart.aspects.length) {
-      heading(pages, 'Аспекты');
-      drawTable(pages, ['Планета', 'Аспект', 'Планета', 'Орбис'],
+      heading(pages, t('hAspects'));
+      drawTable(pages, [t('thPlanet'), t('thAspect'), t('thPlanet'), t('thOrb')],
         chart.aspects.map((x) => [`${x.a.glyph}  ${x.a.name}`, `${x.aspect.glyph}  ${x.aspect.name}`, `${x.b.glyph}  ${x.b.name}`, x.orb.toFixed(1) + '°']),
         [300, 300, 300, 160]);
     }
 
-    pg = heading(pages, 'Кратко о карте');
+    pg = heading(pages, t('hSummary'));
     for (const para of readingParagraphs(chart, unknown)) {
       pg = pages[pages.length - 1];
       if (pg.y + 80 > PH - M) { pg = newPage(); pages.push(pg); }
@@ -548,7 +561,7 @@
       if (i) doc.addPage();
       pp.g.font = `14px ${SANS}`;
       pp.g.fillStyle = '#9a9caa';
-      pp.g.fillText(`${location.host} · стр. ${i + 1} из ${pages.length}`, M, PH - 45);
+      pp.g.fillText(`${location.host} · ${t('page', { n: i + 1, total: pages.length })}`, M, PH - 45);
       doc.addImage(pp.cv.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297);
     });
     const fname = 'natal-' + (p.name ? p.name.replace(/[^\p{L}\p{N}]+/gu, '-') + '-' : '') + p.date + '.pdf';
@@ -560,11 +573,11 @@
     const btn = $('pdf-btn');
     btn.disabled = true;
     const label = btn.textContent;
-    btn.textContent = 'Готовлю PDF…';
+    btn.textContent = t('pdfBusy');
     try {
       await makePdf();
     } catch (e) {
-      $('share-note').textContent = 'Не удалось собрать PDF: ' + (e && e.message ? e.message : e);
+      $('share-note').textContent = t('pdfFail') + (e && e.message ? e.message : e);
     } finally {
       btn.disabled = false;
       btn.textContent = label;

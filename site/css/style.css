@@ -384,3 +384,30 @@ caption { caption-side: bottom; text-align: left; padding-top: 8px; font-size: .
   .natal-form { padding: 16px; }
   th, td { padding: 7px 8px; }
 }
+
+/* ---------- Переключатель языка (создаётся в main.js) ---------- */
+.lang-switch {
+  margin-left: auto;
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: .85rem;
+}
+.lang-switch a {
+  padding: 5px 9px;
+  color: var(--text-dim);
+  text-decoration: none;
+  background: var(--bg-card);
+}
+.lang-switch a + a { border-left: 1px solid var(--line); }
+.lang-switch a:hover { color: var(--text); background: var(--bg-card-hover); }
+.lang-switch a[aria-current] { color: var(--accent); font-weight: 600; }
+.lang-switch + #theme-toggle { margin-left: 0; }
+
+/* Деванагари: в Georgia его нет, берутся системные шрифты */
+:root[lang="hi"] body {
+  font-family: Georgia, "Kohinoor Devanagari", "Nirmala UI", "Noto Serif Devanagari", "Mangal", serif;
+  line-height: 1.8;
+}

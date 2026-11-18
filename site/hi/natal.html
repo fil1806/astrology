@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>जन्म कुंडली — ज्योतिष</title>
+<meta name="description" content="अपनी जन्म कुंडली ऑनलाइन बनाएँ: राशियों और भावों में ग्रह, लग्न और पहलू — जन्म तिथि, समय और स्थान के आधार पर।">
+<script>document.documentElement.dataset.theme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');</script>
+<link rel="stylesheet" href="../css/style.css">
+<!-- i18n:begin (scripts/build.ts) -->
+<link rel="canonical" href="https://patient-cake-f328.fil1806.workers.dev/hi/natal">
+<link rel="alternate" hreflang="ru" href="https://patient-cake-f328.fil1806.workers.dev/natal">
+<link rel="alternate" hreflang="en" href="https://patient-cake-f328.fil1806.workers.dev/en/natal">
+<link rel="alternate" hreflang="hi" href="https://patient-cake-f328.fil1806.workers.dev/hi/natal">
+<link rel="alternate" hreflang="x-default" href="https://patient-cake-f328.fil1806.workers.dev/natal">
+<!-- i18n:end -->
+</head>
+<body>
+<!-- Сгенерировано scripts/build.ts из scripts/natal.template.html и i18n/hi.json — правки вносить туда. -->
+<header>
+  <div class="header-inner">
+    <a class="logo" href="index.html">✦ ज्योतिष</a>
+    <nav>
+      <a href="index.html">मुख्य पृष्ठ</a>
+      <a href="natal.html">जन्म कुंडली</a>
+      <a href="planets.html">ग्रह</a>
+      <a href="zodiac.html">राशियाँ</a>
+      <a href="houses.html">भाव</a>
+      <a href="aspects.html">दृष्टि (पहलू)</a>
+      <a href="practice.html">अभ्यास</a>
+      <a href="audio.html">ऑडियो</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <h1>जन्म कुंडली</h1>
+  <p class="lead">जन्म तिथि, समय और स्थान दर्ज करें — कुंडली यहीं बन जाएगी। कोई जानकारी कहीं नहीं भेजी जाती: गणना आपके ब्राउज़र में होती है। यह पश्चिमी (सायन) पद्धति की कुंडली है, वैदिक नहीं।</p>
+
+  <form id="natal-form" class="natal-form" autocomplete="off">
+    <label class="f-name">नाम <span class="opt">(वैकल्पिक)</span>
+      <input type="text" name="name" maxlength="60" placeholder="जैसे, अनन्या">
+    </label>
+    <label class="f-date">जन्म तिथि
+      <input type="date" name="date" required min="1800-01-01" max="2100-12-31">
+    </label>
+    <label class="f-time">जन्म समय
+      <input type="time" name="time" value="12:00">
+    </label>
+    <label class="f-unknown"><input type="checkbox" name="unknown"> समय अज्ञात</label>
+
+    <label class="f-place">जन्म स्थान
+      <input type="text" name="place" placeholder="शहर का नाम लिखना शुरू करें" required>
+      <ul id="place-results" class="place-results" hidden></ul>
+    </label>
+    <p class="place-chosen" id="place-chosen"></p>
+
+    <details class="f-manual">
+      <summary>निर्देशांक स्वयं दर्ज करें</summary>
+      <div class="manual-grid">
+        <label>अक्षांश <input type="number" name="lat" step="0.0001" min="-90" max="90" placeholder="55.7558"></label>
+        <label>देशांतर <input type="number" name="lon" step="0.0001" min="-180" max="180" placeholder="37.6173"></label>
+        <label>समय क्षेत्र <input type="text" name="tz" placeholder="Europe/Moscow"></label>
+      </div>
+      <p class="hint">समय क्षेत्र IANA प्रारूप में (Asia/Kolkata, Europe/London)। इससे जन्म तिथि पर डेलाइट सेविंग और घड़ी के ऐतिहासिक बदलाव ध्यान में आते हैं।</p>
+    </details>
+
+    <button type="submit" class="btn">कुंडली बनाएँ</button>
+    <p class="form-error" id="form-error" role="alert"></p>
+  </form>
+
+  <section id="natal-result" hidden>
+    <h2 id="result-title">जन्म कुंडली</h2>
+    <p class="result-meta" id="result-meta"></p>
+    <div class="chart-wrap" id="chart"></div>
+    <p class="share-row">
+      <button type="button" class="btn" id="pdf-btn">PDF डाउनलोड करें</button>
+      <button type="button" class="btn btn-ghost" id="share-btn">कुंडली का लिंक कॉपी करें</button>
+      <span id="share-note" class="hint"></span>
+    </p>
+
+    <h2>ग्रह</h2>
+    <div class="table-wrap"><table id="planets-table"></table></div>
+
+    <div id="houses-block">
+      <h2>भाव और केंद्र बिंदु</h2>
+      <div class="table-wrap"><table id="houses-table"></table></div>
+    </div>
+
+    <h2>पहलू</h2>
+    <div class="table-wrap"><table id="aspects-table"></table></div>
+
+    <h2>कुंडली का सार</h2>
+    <div id="reading" class="reading"></div>
+    <blockquote>यह शुरुआत का बिंदु है, तैयार फलादेश नहीं: ग्रह, राशि और भाव को स्वयं जोड़ें, <a href="index.html">अध्ययन योजना</a> के चरणों के अनुसार। विस्तार से — <a href="planets.html">ग्रह</a>, <a href="zodiac.html">राशियाँ</a>, <a href="houses.html">भाव</a>, <a href="aspects.html">पहलू</a>।</blockquote>
+  </section>
+</main>
+
+<footer>
+  ज्योतिष अध्ययन साइट · नई सामग्री जुड़ती रहेगी
+</footer>
+
+<script src="../js/main.js"></script>
+<script src="../js/astronomy.browser.min.js"></script>
+<script src="../js/natal-core.js"></script>
+<script src="../js/natal.js"></script>
+</body>
+</html>

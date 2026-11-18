@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://patient-cake-f328.fil1806.workers.dev/sitemap.xml

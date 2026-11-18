@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Natal Chart — Astrology</title>
+<meta name="description" content="Build your natal chart online: planets in signs and houses, the Ascendant and aspects, from your date, time and place of birth.">
+<script>document.documentElement.dataset.theme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');</script>
+<link rel="stylesheet" href="../css/style.css">
+<!-- i18n:begin (scripts/build.ts) -->
+<link rel="canonical" href="https://patient-cake-f328.fil1806.workers.dev/en/natal">
+<link rel="alternate" hreflang="ru" href="https://patient-cake-f328.fil1806.workers.dev/natal">
+<link rel="alternate" hreflang="en" href="https://patient-cake-f328.fil1806.workers.dev/en/natal">
+<link rel="alternate" hreflang="hi" href="https://patient-cake-f328.fil1806.workers.dev/hi/natal">
+<link rel="alternate" hreflang="x-default" href="https://patient-cake-f328.fil1806.workers.dev/natal">
+<!-- i18n:end -->
+</head>
+<body>
+<!-- Сгенерировано scripts/build.ts из scripts/natal.template.html и i18n/en.json — правки вносить туда. -->
+<header>
+  <div class="header-inner">
+    <a class="logo" href="index.html">✦ Astrology</a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="natal.html">Natal chart</a>
+      <a href="planets.html">Planets</a>
+      <a href="zodiac.html">Signs</a>
+      <a href="houses.html">Houses</a>
+      <a href="aspects.html">Aspects</a>
+      <a href="practice.html">Practice</a>
+      <a href="audio.html">Audio</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <h1>Natal chart</h1>
+  <p class="lead">Enter your date, time and place of birth and the chart is built right here. Nothing is sent anywhere: the calculation runs in your browser.</p>
+
+  <form id="natal-form" class="natal-form" autocomplete="off">
+    <label class="f-name">Name <span class="opt">(optional)</span>
+      <input type="text" name="name" maxlength="60" placeholder="e.g. Anna">
+    </label>
+    <label class="f-date">Date of birth
+      <input type="date" name="date" required min="1800-01-01" max="2100-12-31">
+    </label>
+    <label class="f-time">Time of birth
+      <input type="time" name="time" value="12:00">
+    </label>
+    <label class="f-unknown"><input type="checkbox" name="unknown"> Time unknown</label>
+
+    <label class="f-place">Place of birth
+      <input type="text" name="place" placeholder="Start typing a city" required>
+      <ul id="place-results" class="place-results" hidden></ul>
+    </label>
+    <p class="place-chosen" id="place-chosen"></p>
+
+    <details class="f-manual">
+      <summary>Enter coordinates manually</summary>
+      <div class="manual-grid">
+        <label>Latitude <input type="number" name="lat" step="0.0001" min="-90" max="90" placeholder="55.7558"></label>
+        <label>Longitude <input type="number" name="lon" step="0.0001" min="-180" max="180" placeholder="37.6173"></label>
+        <label>Time zone <input type="text" name="tz" placeholder="Europe/Moscow"></label>
+      </div>
+      <p class="hint">Time zone in IANA format (Europe/London, America/New_York). It accounts for daylight saving and historical clock changes on the date of birth.</p>
+    </details>
+
+    <button type="submit" class="btn">Build chart</button>
+    <p class="form-error" id="form-error" role="alert"></p>
+  </form>
+
+  <section id="natal-result" hidden>
+    <h2 id="result-title">Natal chart</h2>
+    <p class="result-meta" id="result-meta"></p>
+    <div class="chart-wrap" id="chart"></div>
+    <p class="share-row">
+      <button type="button" class="btn" id="pdf-btn">Download PDF</button>
+      <button type="button" class="btn btn-ghost" id="share-btn">Copy link to chart</button>
+      <span id="share-note" class="hint"></span>
+    </p>
+
+    <h2>Planets</h2>
+    <div class="table-wrap"><table id="planets-table"></table></div>
+
+    <div id="houses-block">
+      <h2>Houses and angles</h2>
+      <div class="table-wrap"><table id="houses-table"></table></div>
+    </div>
+
+    <h2>Aspects</h2>
+    <div class="table-wrap"><table id="aspects-table"></table></div>
+
+    <h2>Chart summary</h2>
+    <div id="reading" class="reading"></div>
+    <blockquote>This is a starting point, not a finished reading: tie planet, sign and house together yourself, following the <a href="index.html">study plan</a>. More on <a href="planets.html">planets</a>, <a href="zodiac.html">signs</a>, <a href="houses.html">houses</a> and <a href="aspects.html">aspects</a>.</blockquote>
+  </section>
+</main>
+
+<footer>
+  Astrology study site · More material coming
+</footer>
+
+<script src="../js/main.js"></script>
+<script src="../js/astronomy.browser.min.js"></script>
+<script src="../js/natal-core.js"></script>
+<script src="../js/natal.js"></script>
+</body>
+</html>

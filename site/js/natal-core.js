@@ -14,52 +14,36 @@
   // ︎ — просьба рисовать символ текстом, а не цветным эмодзи (iOS, Android)
   const T = '︎';
 
-  const SIGNS = [
-    { name: 'Овен', glyph: '♈' + T, element: 'fire', key: 'импульсивно, напором, первым' },
-    { name: 'Телец', glyph: '♉' + T, element: 'earth', key: 'основательно, ценя комфорт и надёжность' },
-    { name: 'Близнецы', glyph: '♊' + T, element: 'air', key: 'любознательно, через слово и контакты' },
-    { name: 'Рак', glyph: '♋' + T, element: 'water', key: 'чутко, оберегая своё и своих' },
-    { name: 'Лев', glyph: '♌' + T, element: 'fire', key: 'ярко, щедро, ожидая признания' },
-    { name: 'Дева', glyph: '♍' + T, element: 'earth', key: 'аккуратно, анализируя и улучшая' },
-    { name: 'Весы', glyph: '♎' + T, element: 'air', key: 'дипломатично, в поиске равновесия' },
-    { name: 'Скорпион', glyph: '♏' + T, element: 'water', key: 'глубоко, страстно, до конца' },
-    { name: 'Стрелец', glyph: '♐' + T, element: 'fire', key: 'широко, с верой и тягой к смыслу' },
-    { name: 'Козерог', glyph: '♑' + T, element: 'earth', key: 'ответственно, на долгую дистанцию' },
-    { name: 'Водолей', glyph: '♒' + T, element: 'air', key: 'независимо, нестандартно' },
-    { name: 'Рыбы', glyph: '♓' + T, element: 'water', key: 'интуитивно, растворяясь и сопереживая' },
-  ];
+  // Здесь только структура. Названия и ключевые слова на нужном языке
+  // накладывает localize(словарь) из i18n/<язык>.json.
+  const ELEMENTS = ['fire', 'earth', 'air', 'water'];
+  const SIGNS = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓']
+    .map((g, i) => ({ glyph: g + T, element: ELEMENTS[i % 4], name: '', in: '', key: '' }));
 
   const PLANETS = [
-    { id: 'Sun', name: 'Солнце', glyph: '☉', key: 'суть личности, воля' },
-    { id: 'Moon', name: 'Луна', glyph: '☽', key: 'эмоции, потребности, привычки' },
-    { id: 'Mercury', name: 'Меркурий', glyph: '☿', key: 'мышление, речь' },
-    { id: 'Venus', name: 'Венера', glyph: '♀', key: 'любовь, вкус, ценности' },
-    { id: 'Mars', name: 'Марс', glyph: '♂', key: 'действие, напор' },
-    { id: 'Jupiter', name: 'Юпитер', glyph: '♃', key: 'рост, удача, мировоззрение' },
-    { id: 'Saturn', name: 'Сатурн', glyph: '♄', key: 'дисциплина, границы, опыт' },
-    { id: 'Uranus', name: 'Уран', glyph: '♅', key: 'свобода, перемены' },
-    { id: 'Neptune', name: 'Нептун', glyph: '♆', key: 'мечты, интуиция' },
-    { id: 'Pluto', name: 'Плутон', glyph: '♇', key: 'трансформация, власть' },
-  ];
-  const POINTS = [
-    { id: 'Node', name: 'Восходящий узел', glyph: '☊', key: 'направление развития' },
-    { id: 'Lilith', name: 'Чёрная Луна', glyph: '⚸', key: 'теневая сторона, искушения' },
-  ];
+    ['Sun', '☉'], ['Moon', '☽'], ['Mercury', '☿'], ['Venus', '♀'], ['Mars', '♂'],
+    ['Jupiter', '♃'], ['Saturn', '♄'], ['Uranus', '♅'], ['Neptune', '♆'], ['Pluto', '♇'],
+  ].map(([id, glyph]) => ({ id, glyph, name: id, key: '' }));
+  const POINTS = [['Node', '☊'], ['Lilith', '⚸']].map(([id, glyph]) => ({ id, glyph, name: id, key: '' }));
 
-  const HOUSES = [
-    'личность, внешность', 'деньги, ресурсы', 'общение, ближнее окружение',
-    'дом, семья, корни', 'творчество, дети, любовь', 'работа, здоровье, быт',
-    'партнёрство, брак', 'кризисы, чужие ресурсы', 'мировоззрение, путешествия',
-    'карьера, статус', 'друзья, планы', 'тайное, уединение',
-  ];
+  const HOUSES = new Array(12).fill('');
 
   const ASPECTS = [
-    { angle: 0, name: 'Соединение', glyph: '☌', orb: 8, kind: 'major' },
-    { angle: 60, name: 'Секстиль', glyph: '⚹', orb: 6, kind: 'soft' },
-    { angle: 90, name: 'Квадрат', glyph: '□', orb: 7, kind: 'hard' },
-    { angle: 120, name: 'Тригон', glyph: '△', orb: 8, kind: 'soft' },
-    { angle: 180, name: 'Оппозиция', glyph: '☍', orb: 8, kind: 'hard' },
-  ];
+    { angle: 0, glyph: '☌', orb: 8, kind: 'major' },
+    { angle: 60, glyph: '⚹', orb: 6, kind: 'soft' },
+    { angle: 90, glyph: '□', orb: 7, kind: 'hard' },
+    { angle: 120, glyph: '△', orb: 8, kind: 'soft' },
+    { angle: 180, glyph: '☍', orb: 8, kind: 'hard' },
+  ].map((a) => ({ ...a, name: String(a.angle) }));
+
+  // astro — раздел "astro" словаря. Чего в словаре нет, остаётся как было:
+  // недопереведённый язык покажет английские идентификаторы, а не упадёт.
+  function localize(astro) {
+    (astro.signs || []).forEach((x, i) => SIGNS[i] && Object.assign(SIGNS[i], x));
+    for (const o of PLANETS.concat(POINTS)) Object.assign(o, (astro.planets || {})[o.id] || {});
+    (astro.houses || []).forEach((h, i) => { HOUSES[i] = h; });
+    for (const a of ASPECTS) a.name = (astro.aspects || {})[a.angle] || a.name;
+  }
 
   // ---------- Время ----------
 
@@ -247,7 +231,7 @@
   }
 
   const api = {
-    SIGNS, PLANETS, POINTS, HOUSES, ASPECTS,
+    SIGNS, PLANETS, POINTS, HOUSES, ASPECTS, localize,
     norm, diff, tzOffsetMs, localToUtc, compute, signOf, houseOf,
   };
   root.NatalCore = api;
